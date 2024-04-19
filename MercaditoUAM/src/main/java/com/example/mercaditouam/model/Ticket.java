@@ -28,8 +28,6 @@ public class Ticket {
 
     // Enumeración para los posibles estados de un ticket
     public enum EstadoTicket {
-        ABIERTO,
-        EN_PROCESO,
-        CERRADO
+        ABIERTO, EN_PROCESO, CERRADO
     }
 }

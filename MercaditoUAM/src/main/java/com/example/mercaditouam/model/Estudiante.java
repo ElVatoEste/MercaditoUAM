@@ -1,9 +1,6 @@
 package com.example.mercaditouam.model;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.*;
 import lombok.Data;
 
 import java.util.List;
@@ -14,9 +11,21 @@ import java.util.Set;
 public class Estudiante {
     @Id
     private Integer id;
+
     private String nombre;
+
     private String apellido;
+
     private String cif;
+
     @OneToMany(mappedBy = "estudiante", cascade = CascadeType.ALL)
     private List<Publicacion> publicacion;
+
+    // Relación uno a muchos con la entidad Compra como comprador
+    @OneToMany(mappedBy = "estudianteComprador", cascade = CascadeType.ALL)
+    private List<Compra> comprasComoComprador;
+
+    // Relación uno a muchos con la entidad Compra como vendedor
+    @OneToMany(mappedBy = "estudianteVendedor", cascade = CascadeType.ALL)
+    private List<Compra> comprasComoVendedor;
 }

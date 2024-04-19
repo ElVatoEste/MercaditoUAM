@@ -3,6 +3,7 @@ package com.example.mercaditouam.controller;
 
 import com.example.mercaditouam.model.Publicacion;
 import com.example.mercaditouam.service.IServiceEstudiante;
+import com.example.mercaditouam.service.IServicePublicacion;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -10,38 +11,38 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/estudiante")
-public class ControllerEstudiante {
+@RequestMapping("/publicacion")
+public class ControllerPublicacion {
     @Autowired
-    private IServiceEstudiante serviceEstudiante;
+    private IServicePublicacion servicePublicacion;
 
     @GetMapping("/all")
-    public List<Estudiante> getAll() {
-        return serviceEstudiante.getAll();
+    public List<Publicacion> getAll() {
+        return servicePublicacion.getAll();
     }
 
     @PostMapping("/create")
-    public ResponseEntity<String> crearEstudiante(@RequestBody Estudiante estudiante) {
-        serviceEstudiante.crearEstudiante(estudiante);
-        return ResponseEntity.ok("Usuario creado");
+    public ResponseEntity<String> crearPublicacion(@RequestBody Publicacion publicacion) {
+        servicePublicacion.crearPublicacion(publicacion);
+        return ResponseEntity.ok("Publicacion creada");
     }
 
     @PutMapping("/update")
-    public ResponseEntity<String> update(@RequestBody Estudiante estudiante) {
-        if(estudiante.getId() == null) {
-            return ResponseEntity.badRequest().body("El id no existe");
+    public ResponseEntity<String> update(@RequestBody Publicacion publicacion) {
+        if (publicacion.getId() == null) {
+            return ResponseEntity.badRequest().body("El id de la publicacion no existe");
         }
-        serviceEstudiante.crearEstudiante(estudiante);
-        return ResponseEntity.ok("Usuario actualizado");
+        servicePublicacion.crearPublicacion(publicacion);
+        return ResponseEntity.ok("Publicacion actualizada");
     }
 
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<String> delete(@PathVariable("id") Integer id) {
-        if(id == null) {
-            return  ResponseEntity.badRequest().body("El id no existe");
+        if (id == null) {
+            return  ResponseEntity.badRequest().body("El id de la publicacion no existe");
         }
-        serviceEstudiante.eliminarEstudiante(id);
-        return ResponseEntity.ok("Usuario eliminado");
+        servicePublicacion.eliminarPublicacion(id);
+        return ResponseEntity.ok("Publicacion eliminada");
     }
 
 }
