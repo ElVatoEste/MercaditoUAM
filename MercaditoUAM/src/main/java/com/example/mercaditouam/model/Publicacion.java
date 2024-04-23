@@ -7,15 +7,22 @@ import jakarta.persistence.*;
 @Data
 public class Publicacion {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     private String nombre;
 
-    private Integer precio;
+    @OneToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "categoria_id")
+    private Categoria categoria;
+
+    private double precio;
 
     private String descripcion;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "estudiante_id")
     private Estudiante estudiante;
+
+    private boolean destacada;
 }

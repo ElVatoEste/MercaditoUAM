@@ -1,11 +1,14 @@
-C:\Users\bigma\Desktop\MercadoUam\MercaditoUAM\src\main\java\com\example\mercaditouam\MercaditoUamApplication.java
 C:\Users\bigma\Desktop\MercadoUam\MercaditoUAM\src\main\java\com\example\mercaditouam\model\Ticket.java
 C:\Users\bigma\Desktop\MercadoUam\MercaditoUAM\src\main\java\com\example\mercaditouam\controller\ControllerPublicacion.java
 C:\Users\bigma\Desktop\MercadoUam\MercaditoUAM\src\main\java\com\example\mercaditouam\service\ServiceEstudiante.java
+C:\Users\bigma\Desktop\MercadoUam\MercaditoUAM\src\main\java\com\example\mercaditouam\model\Categoria.java
+C:\Users\bigma\Desktop\MercadoUam\MercaditoUAM\src\main\java\com\example\mercaditouam\model\Compra.java
+C:\Users\bigma\Desktop\MercadoUam\MercaditoUAM\src\main\java\com\example\mercaditouam\model\Publicacion.java
+C:\Users\bigma\Desktop\MercadoUam\MercaditoUAM\src\main\java\com\example\mercaditouam\service\IServiceEstudiante.java
+C:\Users\bigma\Desktop\MercadoUam\MercaditoUAM\src\main\java\com\example\mercaditouam\MercaditoUamApplication.java
+C:\Users\bigma\Desktop\MercadoUam\MercaditoUAM\src\main\java\com\example\mercaditouam\service\ServicePublicacion.java
 C:\Users\bigma\Desktop\MercadoUam\MercaditoUAM\src\main\java\com\example\mercaditouam\controller\ControllerEstudiante.java
 C:\Users\bigma\Desktop\MercadoUam\MercaditoUAM\src\main\java\com\example\mercaditouam\repository\IRepoEstudiante.java
 C:\Users\bigma\Desktop\MercadoUam\MercaditoUAM\src\main\java\com\example\mercaditouam\model\Estudiante.java
-C:\Users\bigma\Desktop\MercadoUam\MercaditoUAM\src\main\java\com\example\mercaditouam\model\Publicacion.java
 C:\Users\bigma\Desktop\MercadoUam\MercaditoUAM\src\main\java\com\example\mercaditouam\service\IServicePublicacion.java
 C:\Users\bigma\Desktop\MercadoUam\MercaditoUAM\src\main\java\com\example\mercaditouam\repository\IRepoPublicacion.java
-C:\Users\bigma\Desktop\MercadoUam\MercaditoUAM\src\main\java\com\example\mercaditouam\service\IServiceEstudiante.java

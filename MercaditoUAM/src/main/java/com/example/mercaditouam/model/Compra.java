@@ -20,6 +20,8 @@ public class Compra {
     @JoinColumn(name = "estudiante_vendedor_id")
     private Estudiante estudianteVendedor;
 
+    private double monto;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "publicacion_id")
     private Publicacion publicacion;  // Publicación comprada
