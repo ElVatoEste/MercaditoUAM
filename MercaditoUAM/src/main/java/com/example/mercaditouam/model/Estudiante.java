@@ -10,6 +10,7 @@ import java.util.Set;
 @Data
 public class Estudiante {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     private String nombre;
