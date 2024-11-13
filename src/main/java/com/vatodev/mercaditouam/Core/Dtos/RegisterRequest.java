@@ -1,13 +1,23 @@
 package com.vatodev.mercaditouam.Core.Dtos;
 
-public class AuthRequest {
+import org.springframework.web.multipart.MultipartFile;
+
+public class RegisterRequest {
     private String username;
     private String email;
     private String password;
-    private String CIF;
+    private String cif;
     private String phoneNumber;
     private String description;
-    private byte[] profilePicture; // Para almacenar la imagen en formato binario
+    private MultipartFile profilePicture; // Para almacenar la imagen en formato binario
+
+    public MultipartFile getProfilePicture() {
+        return profilePicture;
+    }
+
+    public void setProfilePicture(MultipartFile profilePicture) {
+        this.profilePicture = profilePicture;
+    }
 
     public String getUsername() {
         return username;
@@ -33,12 +43,12 @@ public class AuthRequest {
         this.password = password;
     }
 
-    public String getCIF() {
-        return CIF;
+    public String getCif() {
+        return cif;
     }
 
-    public void setCIF(String CIF) {
-        this.CIF = CIF;
+    public void setCif(String cif) {
+        this.cif = cif;
     }
 
     public String getPhoneNumber() {
@@ -55,13 +65,5 @@ public class AuthRequest {
 
     public void setDescription(String description) {
         this.description = description;
-    }
-
-    public byte[] getProfilePicture() {
-        return profilePicture;
-    }
-
-    public void setProfilePicture(byte[] profilePicture) {
-        this.profilePicture = profilePicture;
     }
 }

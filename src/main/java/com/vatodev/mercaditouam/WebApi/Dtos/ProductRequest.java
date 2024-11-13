@@ -1,4 +1,7 @@
 package com.vatodev.mercaditouam.WebApi.Dtos;
+
+import org.springframework.web.multipart.MultipartFile;
+
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -7,9 +10,8 @@ public class ProductRequest {
     private String title;
     private String description;
     private BigDecimal price;
-    private List<byte[]> images;
+    private List<MultipartFile> images; // Cambiado a una lista de MultipartFile
 
-    // Getters y setters
     public Long getUserId() {
         return userId;
     }
@@ -42,11 +44,11 @@ public class ProductRequest {
         this.price = price;
     }
 
-    public List<byte[]> getImages() {
+    public List<MultipartFile> getImages() {
         return images;
     }
 
-    public void setImages(List<byte[]> images) {
+    public void setImages(List<MultipartFile> images) {
         this.images = images;
     }
 }

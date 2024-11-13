@@ -1,11 +1,13 @@
 package com.vatodev.mercaditouam.Core.Services;
 
-import com.vatodev.mercaditouam.Core.Dtos.AuthRequest;
+import com.vatodev.mercaditouam.Core.Dtos.RegisterRequest;
 import com.vatodev.mercaditouam.Core.Dtos.AuthResponse;
+import com.vatodev.mercaditouam.Core.Dtos.LoginRequest;
 import com.vatodev.mercaditouam.Core.Exceptions.AuthenticationFailedException;
 import com.vatodev.mercaditouam.Core.Exceptions.InvalidRefreshTokenException;
 import com.vatodev.mercaditouam.Core.Exceptions.UserAlreadyExistsException;
 import com.vatodev.mercaditouam.Core.Security.JWT.JwtUtil;
+import com.vatodev.mercaditouam.Utils.ImageUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
@@ -17,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import javax.sql.DataSource;
+import java.io.IOException;
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -41,17 +44,17 @@ public class AuthService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    public AuthResponse login(AuthRequest authRequest) {
+    public AuthResponse login(LoginRequest loginRequest) {
         try {
             // Autenticar al usuario
             authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(authRequest.getUsername(), authRequest.getPassword())
+                    new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword())
             );
         } catch (Exception e) {
             throw new AuthenticationFailedException();
         }
 
-        final UserDetails userDetails = userDetailsService.loadUserByUsername(authRequest.getUsername());
+        final UserDetails userDetails = userDetailsService.loadUserByUsername(loginRequest.getUsername());
 
         // Generar tokens
         final String jwt = jwtUtil.generateToken(userDetails.getUsername());
@@ -60,37 +63,58 @@ public class AuthService {
         return new AuthResponse(jwt, refreshToken);
     }
 
-    public AuthResponse register(AuthRequest authRequest) {
-        String hashedPassword = passwordEncoder.encode(authRequest.getPassword());
+    public AuthResponse register(RegisterRequest registerRequest) {
+        String hashedPassword = passwordEncoder.encode(registerRequest.getPassword());
         Timestamp dateCreated = new Timestamp(new Date().getTime());
 
         try (Connection connection = dataSource.getConnection();
              CallableStatement statement = connection.prepareCall("{CALL Registrar_Usuario(?, ?, ?, ?, ?, ?, ?, ?)}")) {
 
-            // Parámetros de usuario
-            statement.setString(1, authRequest.getUsername());
-            statement.setString(2, authRequest.getEmail());
+            statement.setString(1, registerRequest.getUsername());
+            statement.setString(2, registerRequest.getEmail());
             statement.setString(3, hashedPassword);
             statement.setTimestamp(4, dateCreated);
+            statement.setString(5, registerRequest.getCif());
+            statement.setString(6, registerRequest.getPhoneNumber());
+            statement.setString(7, registerRequest.getDescription());
 
-            // Parámetros de perfil
-            statement.setString(5, authRequest.getCIF());
-            statement.setString(6, authRequest.getPhoneNumber());
-            statement.setString(7, authRequest.getDescription());
-            statement.setBytes(8, authRequest.getProfilePicture()); // Asumiendo que el profilePicture es un byte[]
+            // Manejo de la imagen de perfil
+            if (registerRequest.getProfilePicture() != null && !registerRequest.getProfilePicture().isEmpty()) {
+                byte[] compressedImage = ImageUtils.compressImage(registerRequest.getProfilePicture().getBytes());
+                statement.setBytes(8, compressedImage);
+            } else {
+                statement.setNull(8, java.sql.Types.VARBINARY);
+            }
 
             statement.execute();
 
-        } catch (SQLException ex) {
-            if (ex.getErrorCode() == 2627 || ex.getMessage().contains("Username or Email already exists")) {
+        } catch (SQLException | IOException ex) {
+            if (ex instanceof SQLException && ((SQLException) ex).getErrorCode() == 2627) {
                 throw new UserAlreadyExistsException();
-            } else {
-                throw new RuntimeException("Error al registrar el usuario: " + ex.getMessage());
             }
+            throw new RuntimeException("Error al registrar el usuario: " + ex.getMessage());
         }
-        return login(authRequest);
+
+        // Iniciar sesión automáticamente después de registrar al usuario
+        LoginRequest loginRequest = new LoginRequest();
+        loginRequest.setUsername(registerRequest.getUsername());
+        loginRequest.setPassword(registerRequest.getPassword());
+        return login(loginRequest);
     }
 
+    /**
+     * Método para asignar un rol a un usuario utilizando un procedimiento almacenado
+     */
+    private void assignRoleToUser(Long userId, String roleName) {
+        try (Connection connection = dataSource.getConnection();
+             CallableStatement statement = connection.prepareCall("{CALL asignar_rol_usuario(?, ?)}")) {
+            statement.setLong(1, userId);
+            statement.setString(2, roleName);
+            statement.execute();
+        } catch (SQLException ex) {
+            throw new RuntimeException("Error al asignar rol al usuario: " + ex.getMessage());
+        }
+    }
 
     public AuthResponse refreshToken(String refreshToken) {
         String username = jwtUtil.extractUsername(refreshToken);

@@ -1,9 +1,13 @@
 package com.vatodev.mercaditouam.WebApi.Services;
+
+import com.vatodev.mercaditouam.Utils.ImageUtils;
 import com.vatodev.mercaditouam.WebApi.Dtos.ProductRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.sql.DataSource;
+import java.io.IOException;
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -47,8 +51,13 @@ public class ProductService {
 
         // Paso 2: Agregar imágenes al producto si se ha generado un productId
         if (productId != null && productRequest.getImages() != null) {
-            for (byte[] imageData : productRequest.getImages()) {
-                addProductImage(productId, imageData);
+            for (MultipartFile imageFile : productRequest.getImages()) {
+                try {
+                    byte[] compressedImage = ImageUtils.compressImage(imageFile.getBytes());
+                    addProductImage(productId, compressedImage);
+                } catch (IOException e) {
+                    throw new RuntimeException("Error al procesar la imagen: " + e.getMessage(), e);
+                }
             }
         }
 

@@ -14,8 +14,8 @@ public class SwaggerConfig {
     public OpenAPI customOpenAPI() {
         return new OpenAPI()
                 .info(new Info()
-                        .title("API de Autenticación con JWT")
-                        .version("1.0")
+                        .title("MercaditoUAM API")
+                        .version("2.0")
                         .description("API para gestionar autenticación y autorización con JWT en Spring Boot"))
                 .addSecurityItem(new SecurityRequirement().addList("bearerAuth"))
                 .components(
