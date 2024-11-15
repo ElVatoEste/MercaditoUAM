@@ -3,6 +3,7 @@ package com.vatodev.mercaditouam.Core.Services;
 import com.vatodev.mercaditouam.Core.Dtos.RegisterRequest;
 import com.vatodev.mercaditouam.Core.Dtos.AuthResponse;
 import com.vatodev.mercaditouam.Core.Dtos.LoginRequest;
+import com.vatodev.mercaditouam.Core.Security.CustomUserDetails;
 import com.vatodev.mercaditouam.Core.Exceptions.AuthenticationFailedException;
 import com.vatodev.mercaditouam.Core.Exceptions.InvalidRefreshTokenException;
 import com.vatodev.mercaditouam.Core.Exceptions.UserAlreadyExistsException;
@@ -25,6 +26,8 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class AuthService {
@@ -54,11 +57,13 @@ public class AuthService {
             throw new AuthenticationFailedException();
         }
 
-        final UserDetails userDetails = userDetailsService.loadUserByUsername(loginRequest.getUsername());
+        // Cargar detalles del usuario y roles
+        CustomUserDetails customUserDetails = (CustomUserDetails) userDetailsService.loadUserByUsername(loginRequest.getUsername());
+        Long userId = customUserDetails.getUserId();
 
-        // Generar tokens
-        final String jwt = jwtUtil.generateToken(userDetails.getUsername());
-        final String refreshToken = jwtUtil.generateRefreshToken(userDetails.getUsername());
+        // Generar tokens con claims personalizados (userId y roles)
+        final String jwt = jwtUtil.generateToken(userId, customUserDetails.getUsername());
+        final String refreshToken = jwtUtil.generateRefreshToken(userId, customUserDetails.getUsername());
 
         return new AuthResponse(jwt, refreshToken);
     }
@@ -102,30 +107,23 @@ public class AuthService {
         return login(loginRequest);
     }
 
-    /**
-     * Método para asignar un rol a un usuario utilizando un procedimiento almacenado
-     */
-    private void assignRoleToUser(Long userId, String roleName) {
-        try (Connection connection = dataSource.getConnection();
-             CallableStatement statement = connection.prepareCall("{CALL asignar_rol_usuario(?, ?)}")) {
-            statement.setLong(1, userId);
-            statement.setString(2, roleName);
-            statement.execute();
-        } catch (SQLException ex) {
-            throw new RuntimeException("Error al asignar rol al usuario: " + ex.getMessage());
-        }
-    }
-
     public AuthResponse refreshToken(String refreshToken) {
+        // Extrae el username del refresh token
         String username = jwtUtil.extractUsername(refreshToken);
 
+        // Valida el token y si es inválido, lanza excepción
         if (username == null || !jwtUtil.validateRefreshToken(refreshToken)) {
             throw new InvalidRefreshTokenException();
         }
 
-        UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-        String newJwt = jwtUtil.generateToken(userDetails.getUsername());
+        // Cargar los detalles completos del usuario, incluyendo roles
+        CustomUserDetails customUserDetails = (CustomUserDetails) userDetailsService.loadUserByUsername(username);
+        Long userId = customUserDetails.getUserId();
 
+        // Genera un nuevo token JWT de acceso con userId y roles en los claims
+        String newJwt = jwtUtil.generateToken(userId, username);
+
+        // Devuelve el nuevo token de acceso junto con el mismo refresh token
         return new AuthResponse(newJwt, refreshToken);
     }
 

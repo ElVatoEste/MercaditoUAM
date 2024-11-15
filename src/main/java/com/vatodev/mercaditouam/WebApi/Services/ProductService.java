@@ -1,8 +1,10 @@
 package com.vatodev.mercaditouam.WebApi.Services;
 
+import com.vatodev.mercaditouam.Core.Security.JWT.JwtUtil;
 import com.vatodev.mercaditouam.Utils.ImageUtils;
 import com.vatodev.mercaditouam.WebApi.Dtos.ProductRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -21,6 +23,9 @@ public class ProductService {
     @Autowired
     private DataSource dataSource;
 
+    @Autowired
+    private JwtUtil jwtUtil;
+
     /**
      * Crea un nuevo producto y le asigna imágenes.
      *
@@ -30,11 +35,25 @@ public class ProductService {
     public Long createProduct(ProductRequest productRequest) {
         Long productId = null;
 
+        // Extraer el token JWT y verificar que no sea null o vacío
+        String token = (String) SecurityContextHolder.getContext().getAuthentication().getCredentials();
+        if (token == null || token.isEmpty()) {
+            throw new RuntimeException("Token no proporcionado en el contexto de seguridad.");
+        }
+
+        // Extraer el userId del token
+        Long userId;
+        try {
+            userId = jwtUtil.extractUserId(token);
+        } catch (Exception e) {
+            throw new RuntimeException("Error al extraer el userId del token: " + e.getMessage(), e);
+        }
+
         // Paso 1: Crear el producto llamando al procedimiento almacenado
         try (Connection connection = dataSource.getConnection();
              CallableStatement statement = connection.prepareCall("{CALL insertar_producto(?, ?, ?, ?, ?)}")) {
 
-            statement.setLong(1, productRequest.getUserId());
+            statement.setLong(1, userId); // Pasamos el userId extraído del token
             statement.setString(2, productRequest.getTitle());
             statement.setString(3, productRequest.getDescription());
             statement.setBigDecimal(4, productRequest.getPrice());

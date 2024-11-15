@@ -6,19 +6,10 @@ import java.math.BigDecimal;
 import java.util.List;
 
 public class ProductRequest {
-    private Long userId;
     private String title;
     private String description;
     private BigDecimal price;
     private List<MultipartFile> images; // Cambiado a una lista de MultipartFile
-
-    public Long getUserId() {
-        return userId;
-    }
-
-    public void setUserId(Long userId) {
-        this.userId = userId;
-    }
 
     public String getTitle() {
         return title;
