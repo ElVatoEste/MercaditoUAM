@@ -75,6 +75,7 @@ public class AuthService {
         try (Connection connection = dataSource.getConnection();
              CallableStatement statement = connection.prepareCall("{CALL Registrar_Usuario(?, ?, ?, ?, ?, ?, ?, ?)}")) {
 
+            // Configuración de parámetros del usuario
             statement.setString(1, registerRequest.getUsername());
             statement.setString(2, registerRequest.getEmail());
             statement.setString(3, hashedPassword);
@@ -83,29 +84,30 @@ public class AuthService {
             statement.setString(6, registerRequest.getPhoneNumber());
             statement.setString(7, registerRequest.getDescription());
 
-            // Manejo de la imagen de perfil
-            if (registerRequest.getProfilePicture() != null && !registerRequest.getProfilePicture().isEmpty()) {
-                byte[] compressedImage = ImageUtils.compressImage(registerRequest.getProfilePicture().getBytes());
+            // Procesar la imagen de perfil
+            if (registerRequest.getProfilePicture() != null) {
+                byte[] compressedImage = ImageUtils.compressImage(registerRequest.getProfilePicture());
                 statement.setBytes(8, compressedImage);
             } else {
-                statement.setNull(8, java.sql.Types.VARBINARY);
+                statement.setNull(8, java.sql.Types.VARBINARY); // Sin imagen
             }
 
             statement.execute();
 
-        } catch (SQLException | IOException ex) {
-            if (ex instanceof SQLException && ((SQLException) ex).getErrorCode() == 2627) {
+        } catch (SQLException ex) {
+            if (ex.getErrorCode() == 2627) { // Manejo de errores de duplicados
                 throw new UserAlreadyExistsException();
             }
             throw new RuntimeException("Error al registrar el usuario: " + ex.getMessage());
         }
 
-        // Iniciar sesión automáticamente después de registrar al usuario
+        // Autenticar automáticamente después del registro
         LoginRequest loginRequest = new LoginRequest();
         loginRequest.setUsername(registerRequest.getUsername());
         loginRequest.setPassword(registerRequest.getPassword());
         return login(loginRequest);
     }
+
 
     public AuthResponse refreshToken(String refreshToken) {
         // Extrae el username del refresh token

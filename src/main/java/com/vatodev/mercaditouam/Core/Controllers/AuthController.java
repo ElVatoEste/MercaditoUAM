@@ -27,7 +27,7 @@ public class AuthController {
 
             // Crear cookies para JWT y Refresh Token
             ResponseCookie accessTokenCookie = ResponseCookie.from("access_token", authResponse.getAccessToken())
-                    .httpOnly(true)
+                    .httpOnly(false)
                     .secure(true) // Activar solo para HTTPS en producción
                     .path("/")
                     .maxAge(Duration.ofMinutes(15))
@@ -50,10 +50,8 @@ public class AuthController {
         }
     }
 
-    @PostMapping(
-            path = "/register",
-            consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> register(@ModelAttribute RegisterRequest authRequest) {
+    @PostMapping("/register")
+    public ResponseEntity<?> register(@RequestBody RegisterRequest authRequest) {
         try {
             AuthResponse authResponse = authService.register(authRequest);
 
@@ -92,7 +90,7 @@ public class AuthController {
         }
     }
 
-    @PostMapping("/logout")
+    @GetMapping("/logout")
     public ResponseEntity<?> logout() {
         return authService.logout();
     }

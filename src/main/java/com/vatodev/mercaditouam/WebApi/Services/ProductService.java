@@ -2,20 +2,21 @@ package com.vatodev.mercaditouam.WebApi.Services;
 
 import com.vatodev.mercaditouam.Core.Security.JWT.JwtUtil;
 import com.vatodev.mercaditouam.Utils.ImageUtils;
+import com.vatodev.mercaditouam.WebApi.Dtos.ProductListDto;
 import com.vatodev.mercaditouam.WebApi.Dtos.ProductRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 import javax.sql.DataSource;
-import java.io.IOException;
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 @Service
 public class ProductService {
@@ -26,12 +27,33 @@ public class ProductService {
     @Autowired
     private JwtUtil jwtUtil;
 
-    /**
-     * Crea un nuevo producto y le asigna imágenes.
-     *
-     * @param productRequest Detalles del producto y las imágenes asociadas.
-     * @return El ID del nuevo producto creado.
-     */
+    public List<ProductListDto> getPaginatedProducts(int page, int pageSize) {
+        List<ProductListDto> products = new ArrayList<>();
+
+        try (Connection connection = dataSource.getConnection();
+             CallableStatement statement = connection.prepareCall("{CALL obtener_productos_paginados(?, ?)}")) {
+
+            statement.setInt(1, page);
+            statement.setInt(2, pageSize);
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    ProductListDto product = new ProductListDto();
+                    product.setProductId(resultSet.getLong("productId"));
+                    product.setTitle(resultSet.getString("title"));
+                    product.setDescription(resultSet.getString("description"));
+                    product.setPrice(resultSet.getDouble("price"));
+                    product.setImageData(resultSet.getBytes("imageData")); // Puede ser null si no hay imagen
+                    products.add(product);
+                }
+            }
+        } catch (SQLException ex) {
+            throw new RuntimeException("Error al obtener los productos paginados: " + ex.getMessage(), ex);
+        }
+
+        return products;
+    }
+
     public Long createProduct(ProductRequest productRequest) {
         Long productId = null;
 
@@ -45,6 +67,9 @@ public class ProductService {
         Long userId;
         try {
             userId = jwtUtil.extractUserId(token);
+            if (userId == null) {
+                throw new RuntimeException("ID de usuario no encontrado en el token.");
+            }
         } catch (Exception e) {
             throw new RuntimeException("Error al extraer el userId del token: " + e.getMessage(), e);
         }
@@ -53,16 +78,17 @@ public class ProductService {
         try (Connection connection = dataSource.getConnection();
              CallableStatement statement = connection.prepareCall("{CALL insertar_producto(?, ?, ?, ?, ?)}")) {
 
-            statement.setLong(1, userId); // Pasamos el userId extraído del token
+            statement.setLong(1, userId);
             statement.setString(2, productRequest.getTitle());
             statement.setString(3, productRequest.getDescription());
             statement.setBigDecimal(4, productRequest.getPrice());
             statement.setTimestamp(5, new Timestamp(new Date().getTime()));
 
             // Ejecutar y obtener el productId generado
-            ResultSet rs = statement.executeQuery();
-            if (rs.next()) {
-                productId = rs.getLong("NewProductId");
+            try (ResultSet rs = statement.executeQuery()) {
+                if (rs.next()) {
+                    productId = rs.getLong("NewProductId");
+                }
             }
         } catch (SQLException ex) {
             throw new RuntimeException("Error al crear el producto: " + ex.getMessage(), ex);
@@ -70,25 +96,14 @@ public class ProductService {
 
         // Paso 2: Agregar imágenes al producto si se ha generado un productId
         if (productId != null && productRequest.getImages() != null) {
-            for (MultipartFile imageFile : productRequest.getImages()) {
-                try {
-                    byte[] compressedImage = ImageUtils.compressImage(imageFile.getBytes());
-                    addProductImage(productId, compressedImage);
-                } catch (IOException e) {
-                    throw new RuntimeException("Error al procesar la imagen: " + e.getMessage(), e);
-                }
+            for (byte[] imageData : productRequest.getImages()) {
+                byte[] compressedImage = ImageUtils.compressImage(imageData);
+                addProductImage(productId, compressedImage);
             }
         }
-
         return productId;
     }
 
-    /**
-     * Agrega una imagen a un producto específico.
-     *
-     * @param productId El ID del producto.
-     * @param imageData Datos de la imagen en formato binario.
-     */
     private void addProductImage(Long productId, byte[] imageData) {
         try (Connection connection = dataSource.getConnection();
              CallableStatement statement = connection.prepareCall("{CALL insertar_imagen_producto(?, ?)}")) {

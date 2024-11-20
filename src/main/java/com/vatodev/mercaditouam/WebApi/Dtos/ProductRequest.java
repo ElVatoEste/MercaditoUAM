@@ -9,7 +9,15 @@ public class ProductRequest {
     private String title;
     private String description;
     private BigDecimal price;
-    private List<MultipartFile> images; // Cambiado a una lista de MultipartFile
+    private List<byte[]> images;
+
+    public List<byte[]> getImages() {
+        return images;
+    }
+
+    public void setImages(List<byte[]> images) {
+        this.images = images;
+    }
 
     public String getTitle() {
         return title;
@@ -35,11 +43,4 @@ public class ProductRequest {
         this.price = price;
     }
 
-    public List<MultipartFile> getImages() {
-        return images;
-    }
-
-    public void setImages(List<MultipartFile> images) {
-        this.images = images;
-    }
 }

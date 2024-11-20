@@ -1,7 +1,5 @@
 package com.vatodev.mercaditouam.Core.Dtos;
 
-import org.springframework.web.multipart.MultipartFile;
-
 public class RegisterRequest {
     private String username;
     private String email;
@@ -9,16 +7,9 @@ public class RegisterRequest {
     private String cif;
     private String phoneNumber;
     private String description;
-    private MultipartFile profilePicture; // Para almacenar la imagen en formato binario
+    private byte[] profilePicture; // Imagen en formato binario
 
-    public MultipartFile getProfilePicture() {
-        return profilePicture;
-    }
-
-    public void setProfilePicture(MultipartFile profilePicture) {
-        this.profilePicture = profilePicture;
-    }
-
+    // Getters y Setters
     public String getUsername() {
         return username;
     }
@@ -65,5 +56,13 @@ public class RegisterRequest {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public byte[] getProfilePicture() {
+        return profilePicture;
+    }
+
+    public void setProfilePicture(byte[] profilePicture) {
+        this.profilePicture = profilePicture;
     }
 }
