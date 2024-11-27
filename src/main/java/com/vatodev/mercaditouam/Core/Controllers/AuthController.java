@@ -30,7 +30,7 @@ public class AuthController {
                     .httpOnly(false)
                     .secure(true) // Activar solo para HTTPS en producción
                     .path("/")
-                    .maxAge(Duration.ofMinutes(15))
+                    .maxAge(Duration.ofMinutes(60))
                     .build();
 
             ResponseCookie refreshTokenCookie = ResponseCookie.from("refresh_token", authResponse.getRefreshToken())

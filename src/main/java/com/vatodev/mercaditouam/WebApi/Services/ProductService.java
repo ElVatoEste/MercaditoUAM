@@ -4,6 +4,7 @@ import com.vatodev.mercaditouam.Core.Security.JWT.JwtUtil;
 import com.vatodev.mercaditouam.Utils.ImageUtils;
 import com.vatodev.mercaditouam.WebApi.Dtos.ProductListDto;
 import com.vatodev.mercaditouam.WebApi.Dtos.ProductRequest;
+import com.vatodev.mercaditouam.WebApi.Dtos.ProductWithOwnerDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -115,4 +116,37 @@ public class ProductService {
             throw new RuntimeException("Error al agregar imagen al producto: " + ex.getMessage(), ex);
         }
     }
+
+    public ProductWithOwnerDto getProductWithOwnerInfo(Long productId) {
+        ProductWithOwnerDto productWithOwner = null;
+
+        try (Connection connection = dataSource.getConnection();
+             CallableStatement statement = connection.prepareCall("{CALL Get_productWithOwnerInfo(?)}")) {
+
+            // Establecer el parámetro de entrada
+            statement.setLong(1, productId);
+
+            // Ejecutar el procedimiento almacenado y procesar los resultados
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    productWithOwner = new ProductWithOwnerDto();
+                    productWithOwner.setProductId(resultSet.getInt("productId"));
+                    productWithOwner.setTitle(resultSet.getString("title"));
+                    productWithOwner.setDescription(resultSet.getString("description"));
+                    productWithOwner.setPrice(resultSet.getDouble("price"));
+                    productWithOwner.setActive(resultSet.getBoolean("isActive"));
+                    productWithOwner.setFeatured(resultSet.getBoolean("isFeatured"));
+                    productWithOwner.setCreatedAt(resultSet.getString("createdAt"));
+                    productWithOwner.setOwnerUsername(resultSet.getString("OwnerUsername"));
+                    productWithOwner.setOwnerEmail(resultSet.getString("OwnerEmail"));
+                    productWithOwner.setOwnerPhoneNumber(resultSet.getInt("OwnerPhoneNumber"));
+                }
+            }
+        } catch (SQLException ex) {
+            throw new RuntimeException("Error al obtener la información del producto: " + ex.getMessage(), ex);
+        }
+
+        return productWithOwner;
+    }
+
 }
